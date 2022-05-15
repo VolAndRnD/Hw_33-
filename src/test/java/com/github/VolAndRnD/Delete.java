@@ -1,68 +1,74 @@
-package com.VolAndRnD.github;
+package com.github.VolAndRnD;
 
 import io.restassured.RestAssured;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 public class Delete {
+    private static CreateTokenRequest tokenRequest;
+    private static CreateIdRequest idRequest;
     static String token;
     static String id;
 
+    private static final String PROPERTIES_FILE_PATH = "src/test/resources/application.properties";
+    static Properties properties =new Properties();
+
+
+
     @BeforeAll
-    static void beforAll(){
+    static void beforAll() throws IOException {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-    }
+        properties.load(new FileInputStream(PROPERTIES_FILE_PATH));
+        RestAssured.baseURI = properties.getProperty("base.url");
 
-    @BeforeAll
-     static void setToken(){
+         tokenRequest = CreateTokenRequest.builder()
+                .username("admin")
+                .password("password123")
+                .build();
+         idRequest = CreateIdRequest.builder()
+                 .firstname("Jim")
+                 .lastname("Brown")
+                 .totalprice(150)
+                 .depositpaid(true)
+                 .bookingdates(new Bookingdates("2021-01-01", "2022-01-01"))
+                 .additionalneeds("ice-cream")
+                 .build();
 
-       token =  given()
+        token =  given()
                 .log()
                 .all()
                 .header("Content-Type", "application/json")
-                .body("{\n"
-                +   " \"username\" : \"admin\",\n"
-                +   " \"password\" : \"password123\"\n"
-                +   "}")
+                .body(tokenRequest)
                 .expect()
                 .statusCode(200)
                 .body("token",is(CoreMatchers.not(nullValue())))
                 .when()
-                .post("https://restful-booker.herokuapp.com/auth")
+                .post("/auth")
                 .prettyPeek()
                 .body()
                 .jsonPath()
                 .get("token")
                 .toString();
-    }
 
-    @BeforeAll
-    static void setUp(){
          id = given()
                  .log()
                  .all()
                  .header("Content-Type", "application/json")
-                .body("{\n"
-                  +   " \"firstname\" : \"Jim\",\n"
-                  +   " \"lastname\" : \"Brown\",\n"
-                  +   " \"totalprice\" : 111,\n"
-                  +   " \"depositpaid\" : true,\n"
-                  +   " \"bookingdates\" : {\n"
-                  +   "  \"checkin\" :  \"2021-01-01\",\n"
-                  +   "  \"checkout\" :  \"2022-01-01\"\n"
-                  +   "   },\n"
-                  +   " \"additionalneeds\" : \"Breakfast\"\n"
-                  +   "}"
-                )
+                .body(idRequest)
                 .expect()
                 .statusCode(200)
                 .when()
-                .post("https://restful-booker.herokuapp.com/booking")
+                .post("/booking")
                 .prettyPeek()
                 .body()
                 .jsonPath()
@@ -72,16 +78,16 @@ public class Delete {
     }
 
     @Test
-    void deleteAuthorizationPasswordTest(){
+    void deleteAuthorizationPasswordDropIDTest(){
         given()
                 .log()
                 .all()
                 .header("Authorization", "Basic YWRtaW46cGFzc3dvcmQxMjM=" )
                 .when()
-                .delete("https://restful-booker.herokuapp.com/booking/"+id)
+                .delete("/booking/"+id)
                 .prettyPeek()
                 .then()
-                .statusCode(201);
+                .statusCode(405);
 
     }
     @Test
@@ -91,7 +97,7 @@ public class Delete {
                 .all()
                 .header("Cookie","token=" + token )
                 .when()
-                .delete("https://restful-booker.herokuapp.com/booking/"+id)
+                .delete("/booking/"+id)
                 .prettyPeek()
                 .then()
                 .statusCode(201);
@@ -103,7 +109,7 @@ public class Delete {
                 .log()
                 .all()
                 .when()
-                .delete("https://restful-booker.herokuapp.com/booking/"+id)
+                .delete("/booking/"+id)
                 .prettyPeek()
                 .then()
                 .statusCode(403);
