@@ -1,4 +1,4 @@
-package com.VolAndRnD.github;
+package com.github.VolAndRnD;
 
 import io.restassured.RestAssured;
 import org.hamcrest.CoreMatchers;
@@ -9,7 +9,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
-public class Delete {
+public class DeleteBookingTest {
     static String token;
     static String id;
 
