@@ -1,4 +1,4 @@
-package com.VolAndRnD.github;
+package com.github.VolAndRnD;
 
 import io.restassured.RestAssured;
 import org.hamcrest.CoreMatchers;

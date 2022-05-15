@@ -1,4 +1,4 @@
-package com.VolAndRnD.github;
+package com.github.VolAndRnD;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -187,18 +187,18 @@ public class PartialUpdateBookingTest {
 
                 }
     @Test
-    void partialUpdateAuthorizationTokenInvalueDepositPaidTest() {
-        given()
+    void partialUpdateAuthorizationTokenAndChangeOneValueTest() {
+        Response response = given()
                 .log()
                 .all()
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .header("Cookie", "token=" + token)
                 .body("{\n"
-                        + " \"firstname\" : \"Jim\",\n"
+                        + " \"firstname\" : \"Vladislave\",\n"
                         + " \"lastname\" : \"Brown\",\n"
                         + " \"totalprice\" : 1111,\n"
-                        + " \"depositpaid\" : false,\n"
+                        + " \"depositpaid\" : true,\n"
                         + " \"bookingdates\" : {\n"
                         + "  \"checkin\" :  \"2021-01-01\",\n"
                         + "  \"checkout\" :  \"2022-01-01\"\n"
@@ -206,11 +206,11 @@ public class PartialUpdateBookingTest {
                         + " \"additionalneeds\" : \"Breakfast\"\n"
                         + "}"
                 )
-                .expect()
-                .body("depositpaid", equalTo(false))
                 .when()
                 .patch("https://restful-booker.herokuapp.com/booking/" + id)
                 .prettyPeek();
+        assertThat(response.statusCode(),equalTo(200));
+        assertThat(response.body().jsonPath().get("firstname"), containsStringIgnoringCase("Vladislave"));
     }
     @Test
     void partialUpdateAuthorizationPasswordAndFirstNameAndLastNameAndTotalPrisePozitivTest(){
