@@ -1,10 +1,14 @@
-package com.VolAndRnD.github;
+package com.github.VolAndRnD;
 
 import io.restassured.RestAssured;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
@@ -16,10 +20,17 @@ public class Delete {
     static String token;
     static String id;
 
+    private static final String PROPERTIES_FILE_PATH = "src/test/resources/application.properties";
+    static Properties properties =new Properties();
+
+
 
     @BeforeAll
-    static void beforAll(){
+    static void beforAll() throws IOException {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        properties.load(new FileInputStream(PROPERTIES_FILE_PATH));
+        RestAssured.baseURI = properties.getProperty("base.url");
+
          tokenRequest = CreateTokenRequest.builder()
                 .username("admin")
                 .password("password123")
@@ -42,7 +53,7 @@ public class Delete {
                 .statusCode(200)
                 .body("token",is(CoreMatchers.not(nullValue())))
                 .when()
-                .post("https://restful-booker.herokuapp.com/auth")
+                .post("/auth")
                 .prettyPeek()
                 .body()
                 .jsonPath()
@@ -57,7 +68,7 @@ public class Delete {
                 .expect()
                 .statusCode(200)
                 .when()
-                .post("https://restful-booker.herokuapp.com/booking")
+                .post("/booking")
                 .prettyPeek()
                 .body()
                 .jsonPath()
@@ -73,7 +84,7 @@ public class Delete {
                 .all()
                 .header("Authorization", "Basic YWRtaW46cGFzc3dvcmQxMjM=" )
                 .when()
-                .delete("https://restful-booker.herokuapp.com/booking/"+id)
+                .delete("/booking/"+id)
                 .prettyPeek()
                 .then()
                 .statusCode(405);
@@ -86,7 +97,7 @@ public class Delete {
                 .all()
                 .header("Cookie","token=" + token )
                 .when()
-                .delete("https://restful-booker.herokuapp.com/booking/"+id)
+                .delete("/booking/"+id)
                 .prettyPeek()
                 .then()
                 .statusCode(201);
@@ -98,7 +109,7 @@ public class Delete {
                 .log()
                 .all()
                 .when()
-                .delete("https://restful-booker.herokuapp.com/booking/"+id)
+                .delete("/booking/"+id)
                 .prettyPeek()
                 .then()
                 .statusCode(403);

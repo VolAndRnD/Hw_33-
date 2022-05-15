@@ -1,10 +1,14 @@
-package com.VolAndRnD.github;
+package com.github.VolAndRnD;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -16,10 +20,17 @@ public class PartialUpdate {
     static String token;
     static String id;
 
+    private static final String PROPERTIES_FILE_PATH = "src/test/resources/application.properties";
+    static Properties properties =new Properties();
+
+
 
     @BeforeAll
-    static void beforAll(){
+    static void beforAll() throws IOException {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        properties.load(new FileInputStream(PROPERTIES_FILE_PATH));
+        RestAssured.baseURI = properties.getProperty("base.url");
+
         tokenRequest = CreateTokenRequest.builder()
                 .username("admin")
                 .password("password123")
@@ -42,7 +53,7 @@ public class PartialUpdate {
                 .statusCode(200)
                 .body("token",is(CoreMatchers.not(nullValue())))
                 .when()
-                .post("https://restful-booker.herokuapp.com/auth")
+                .post("/auth")
                 .prettyPeek()
                 .body()
                 .jsonPath()
@@ -57,7 +68,7 @@ public class PartialUpdate {
                 .expect()
                 .statusCode(200)
                 .when()
-                .post("https://restful-booker.herokuapp.com/booking")
+                .post("/booking")
                 .prettyPeek()
                 .body()
                 .jsonPath()
@@ -77,7 +88,7 @@ public class PartialUpdate {
                 .expect()
                 .statusCode(200)
                 .when()
-                .patch("https://restful-booker.herokuapp.com/booking/"+ id)
+                .patch("/booking/"+ id)
                 .prettyPeek()
                 .then()
                 .statusCode(200);
@@ -95,7 +106,7 @@ public class PartialUpdate {
                 .expect()
                 .statusCode(200)
                 .when()
-                .patch("https://restful-booker.herokuapp.com/booking/"+ id)
+                .patch("/booking/"+ id)
                 .prettyPeek()
                 .then()
                 .statusCode(200);
@@ -111,7 +122,7 @@ public class PartialUpdate {
                 .header("Accept", "application/json")
                 .body(idRequest)
                 .when()
-                .patch("https://restful-booker.herokuapp.com/booking/"+ id)
+                .patch("/booking/"+ id)
                 .prettyPeek()
                 .then()
                 .statusCode(403);}
@@ -136,13 +147,13 @@ public class PartialUpdate {
                 .expect()
                 .body("checkin", equalTo("01-01-2021"))
                 .when()
-                .patch("https://restful-booker.herokuapp.com/booking/"+ id)
+                .patch("/booking/"+ id)
                 .prettyPeek();
 
                 }
     @Test
-    void partialUpdateAuthorizationTokenInvalueDepositPaidTest() {
-        given()
+    void partialUpdateAuthorizationTokenAndChangeOneValueTest() {
+        Response response = given()
                 .log()
                 .all()
                 .header("Content-Type", "application/json")
@@ -150,19 +161,20 @@ public class PartialUpdate {
                 .header("Cookie", "token=" + token)
                 .body(
                         CreateIdRequest.builder()
-                                .firstname("Jim")
+                                .firstname("Vladislave")
                                 .lastname("Brown")
                                 .totalprice(1111)
-                                .depositpaid(false)
+                                .depositpaid(true)
                                 .bookingdates(new Bookingdates("2021-01-01", "2022-01-01"))
                                 .additionalneeds("Breakfast")
                                 .build())
-                .expect()
-                .body("depositpaid", equalTo(false))
                 .when()
-                .patch("https://restful-booker.herokuapp.com/booking/" + id)
+                .patch("/booking/" + id)
                 .prettyPeek();
+        assertThat(response.statusCode(),equalTo(200));
+        assertThat(response.body().jsonPath().get("firstname"), containsStringIgnoringCase("Vladislave"));
     }
+
     @Test
     void partialUpdateAuthorizationPasswordAndFirstNameAndLastNameAndTotalPrisePozitivTest(){
         Response response = given()
@@ -183,7 +195,7 @@ public class PartialUpdate {
                 .expect()
                 .statusCode(200)
                 .when()
-                .patch("https://restful-booker.herokuapp.com/booking/"+ id)
+                .patch("/booking/"+ id)
                 .prettyPeek();
                 assertThat(response.statusCode(),equalTo(200));
                 assertThat(response.body().jsonPath().get("firstname"), containsStringIgnoringCase("Ag ent"));
@@ -209,7 +221,7 @@ public class PartialUpdate {
                                 .additionalneeds("Breakfast")
                                 .build())
                 .when()
-                .patch("https://restful-booker.herokuapp.com/booking/" + id)
+                .patch("/booking/" + id)
                 .prettyPeek();
         assertThat(response.statusCode(), equalTo(200));
 

@@ -1,5 +1,5 @@
 
-package com.VolAndRnD.github;
+package com.github.VolAndRnD;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
